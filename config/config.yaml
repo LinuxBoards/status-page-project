@@ -1,0 +1,76 @@
+ui:
+  title: '${APP_TITLE}'
+  description: '${APP_DESCRIPTION}'
+  header: '${APP_HEADER}'
+  logo: '${APP_LOGO}'
+  link: '${APP_LINK}'
+
+storage:
+  type: postgres
+  path: '${DATABASE_DSN}'
+
+x-uptime-options: &uptime-options
+  interval: 1m
+  conditions:
+    - '[STATUS] == 200'
+    - '[RESPONSE_TIME] < 1000'
+  alerts:
+    - type: email
+      description: 'Website uptime validation'
+      send-on-resolved: true
+
+x-domain-options: &domain-options
+  client:
+    dns-resolver: 'tcp://${DNS_RESOLVER}:53'
+  interval: 5m
+  conditions:
+    - '[DOMAIN_EXPIRATION] > 720h'
+  alerts:
+    - type: email
+      description: 'Website domain validation'
+      send-on-resolved: true
+
+x-cert-options: &cert-options
+  client:
+    dns-resolver: 'tcp://${DNS_RESOLVER}:53'
+  interval: 5m
+  conditions:
+    - '[CERTIFICATE_EXPIRATION] > 48h'
+  alerts:
+    - type: email
+      description: 'Website SSL/TLS certificate validation'
+      send-on-resolved: true
+
+alerting:
+  email:
+    host: '${EMAIL_HOST}'
+    port: ${EMAIL_PORT}
+    username: '${EMAIL_USERNAME}'
+    password: '${EMAIL_PASSWORD}'
+    from: '${EMAIL_FROM}'
+    to: '${EMAIL_TO}'
+    client:
+      insecure: ${EMAIL_INSECURE}
+
+  telegram:
+    token: '${TELEGRAM_BOT_TOKEN}'
+    id: '${TELEGRAM_USER_ID}'
+
+endpoints:
+  # Uptime
+  - name: Linux Boards
+    group: 01. Web
+    url: 'https://linuxboards.com'
+    <<: *uptime-options
+
+  # Domain
+  - name: Duck Duck Go
+    group: 02. Domains
+    url: 'https://duckduckgo.com'
+    <<: *domain-options
+
+  # Certificates
+  - name: Example Domain
+    group: 03. Certificates
+    url: 'https://example.org'
+    <<: *cert-options
